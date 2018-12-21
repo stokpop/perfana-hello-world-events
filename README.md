@@ -13,14 +13,16 @@ Add a dependency to the perfana-java-client jar, just for compile.
 
 Example:
 
-       <dependencies>
-           <dependency>
-               <groupId>io.perfana</groupId>
-               <artifactId>perfana-java-client</artifactId>
-               <version>1.1.0</version>
-               <scope>compile</scope>
-           </dependency>
-       </dependencies>
+```xml
+<dependencies>
+   <dependency>
+       <groupId>io.perfana</groupId>
+       <artifactId>perfana-java-client</artifactId>
+       <version>1.1.0</version>
+       <scope>compile</scope>
+   </dependency>
+</dependencies>
+```
 
 Then you are able to implement the `PerfanaTestEvent`.
 
@@ -30,5 +32,6 @@ The magic happens when you add the appropriate file
 in `META-INF/services`. See the sample in this project.
 
 You need to specify the fully qualified name of your implementation
-in a file called `nl.stokpop.perfana.event.StokpopHelloPerfanaEvent`. 
+(e.g. `nl.stokpop.perfana.event.StokpopHelloPerfanaEvent`) 
+in a file called `io.perfana.event.PerfanaTestEvent`. 
 
