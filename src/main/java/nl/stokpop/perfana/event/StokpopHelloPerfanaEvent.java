@@ -2,7 +2,10 @@ package nl.stokpop.perfana.event;
 
 import io.perfana.event.PerfanaTestEventAdapter;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class StokpopHelloPerfanaEvent extends PerfanaTestEventAdapter {
 
@@ -27,15 +30,41 @@ public class StokpopHelloPerfanaEvent extends PerfanaTestEventAdapter {
     public void afterTest(String testId, Map<String,String> properties) {
         say("Hello after test [" + testId + "]");
     }
-
+    
     @Override
-    public void failover(String testId, Map<String,String> properties) {
-        say("Hello failover " + testId + "]");
+    public void keepAlive(String testId, Map<String, String> eventProperties) {
+        say("Hello keep alive for test [" + testId + "]");
     }
 
     @Override
-    public void keepAlive(final String testId, final Map<String, String> eventProperties) {
-        say("Hello keep alive for test [" + testId + "]");
+    public void customEvent(String testId, Map<String, String> eventProperties, String eventName, String eventSettings) {
+        if ("fail-over".equalsIgnoreCase(eventName)) {
+            failOverEvent(testId, eventProperties, eventSettings);
+        }
+        else if ("scale-down".equalsIgnoreCase(eventName)) {
+            scaleDownEvent(testId, eventProperties, eventSettings);
+        }
+        else {
+            say("WARNING: ignoring unknown event [" + eventName + "]");
+        }
+    }
+
+    private void scaleDownEvent(String testId, Map<String, String> eventProperties, String eventSettings) {
+        say("dispatched scale-down event for test [" + testId + "] with settings [" + eventSettings + "]");
+    }
+
+    private void failOverEvent(String testId, Map<String, String> eventProperties, String eventSettings) {
+        Map<String, String> settings = parseSettings(eventSettings);
+        say("dispatched fail-over event for test [" + testId + "] with settings [" + eventSettings + "] with settings: " + settings);
+    }
+
+    static Map<String, String> parseSettings(String eventSettings) {
+        if (eventSettings == null || eventSettings.trim().length() == 0) {
+            return Collections.emptyMap();
+        }
+        return Arrays.stream(eventSettings.split(";"))
+                .map(s -> s.split("="))
+                .collect(Collectors.toMap(k -> k[0], v -> v.length == 2 ? v[1] : ""));
     }
 
     private static void say(String something) {
