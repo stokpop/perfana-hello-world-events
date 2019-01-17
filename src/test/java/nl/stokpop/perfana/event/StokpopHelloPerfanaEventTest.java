@@ -1,7 +1,9 @@
 package nl.stokpop.perfana.event;
 
+import io.perfana.event.ScheduleEvent;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,9 +21,9 @@ public class StokpopHelloPerfanaEventTest {
         StokpopHelloPerfanaEvent event = new StokpopHelloPerfanaEvent();
         event.beforeTest("my-test-id", properties);
         event.keepAlive("my-test-id", properties);
-        event.customEvent("my-test-id", properties, "fail-over", "debug=true;server=test");
-        event.customEvent("my-test-id", properties, "scale-down", null);
-        event.customEvent("my-test-id", properties, "scale-up", null);
+        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT3S|fail-over|debug=true;server=test"));
+        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT1M|scale-down"));
+        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT1H2M3S|scale-up|"));
         event.afterTest("my-test-id", properties);
 
         // not much to assert really... just look at System.out and
