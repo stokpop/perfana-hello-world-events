@@ -6,7 +6,7 @@
 
     <groupId>nl.stokpop</groupId>
     <artifactId>perfana-hello-world-events</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1-SNAPSHOT</version>
 
     <name>perfana-hello-world-events</name>
 
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>io.perfana</groupId>
             <artifactId>perfana-java-client</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

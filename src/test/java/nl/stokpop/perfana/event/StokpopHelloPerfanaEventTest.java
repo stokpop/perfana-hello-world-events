@@ -1,14 +1,14 @@
 package nl.stokpop.perfana.event;
 
+import io.perfana.client.api.PerfanaTestContext;
+import io.perfana.client.api.PerfanaTestContextBuilder;
 import io.perfana.event.ScheduleEvent;
 import org.junit.Test;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class StokpopHelloPerfanaEventTest {
 
@@ -18,13 +18,17 @@ public class StokpopHelloPerfanaEventTest {
         properties.put("prop1", "name1");
         properties.put("prop2", "name2");
 
+        PerfanaTestContext context = new PerfanaTestContextBuilder()
+                .setTestRunId("my-test-run-id")
+                .build();
+        
         StokpopHelloPerfanaEvent event = new StokpopHelloPerfanaEvent();
-        event.beforeTest("my-test-id", properties);
-        event.keepAlive("my-test-id", properties);
-        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT3S|fail-over|debug=true;server=test"));
-        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT1M|scale-down"));
-        event.customEvent("my-test-id", properties, ScheduleEvent.createFromLine("PT1H2M3S|scale-up|"));
-        event.afterTest("my-test-id", properties);
+        event.beforeTest(context, properties);
+        event.keepAlive(context, properties);
+        event.customEvent(context, properties, ScheduleEvent.createFromLine("PT3S|fail-over|debug=true;server=test"));
+        event.customEvent(context, properties, ScheduleEvent.createFromLine("PT1M|scale-down"));
+        event.customEvent(context, properties, ScheduleEvent.createFromLine("PT1H2M3S|scale-up|"));
+        event.afterTest(context, properties);
 
         // not much to assert really... just look at System.out and
         // check it does not blow with an Exception...
