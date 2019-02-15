@@ -1,7 +1,8 @@
 package nl.stokpop.perfana.event;
 
-import io.perfana.client.api.PerfanaTestContext;
-import io.perfana.client.api.PerfanaTestContextBuilder;
+import io.perfana.client.api.TestContext;
+import io.perfana.client.api.TestContextBuilder;
+import io.perfana.event.EventProperties;
 import io.perfana.event.ScheduleEvent;
 import org.junit.Test;
 
@@ -14,11 +15,13 @@ public class StokpopHelloPerfanaEventTest {
 
     @Test
     public void beforeTest() {
-        Map<String,String> properties = new HashMap<>();
-        properties.put("prop1", "name1");
-        properties.put("prop2", "name2");
+        Map<String,String> props = new HashMap<>();
+        props.put("prop1", "name1");
+        props.put("prop2", "name2");
 
-        PerfanaTestContext context = new PerfanaTestContextBuilder()
+        EventProperties properties = new EventProperties(props);
+
+        TestContext context = new TestContextBuilder()
                 .setTestRunId("my-test-run-id")
                 .build();
         

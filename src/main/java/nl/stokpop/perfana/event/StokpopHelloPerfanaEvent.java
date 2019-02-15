@@ -1,7 +1,7 @@
 package nl.stokpop.perfana.event;
 
-import io.perfana.client.api.PerfanaClientLogger;
-import io.perfana.client.api.PerfanaTestContext;
+import io.perfana.client.api.TestContext;
+import io.perfana.event.EventProperties;
 import io.perfana.event.PerfanaEventAdapter;
 import io.perfana.event.ScheduleEvent;
 
@@ -28,90 +28,90 @@ public class StokpopHelloPerfanaEvent extends PerfanaEventAdapter {
     }
 
     @Override
-    public void beforeTest(PerfanaTestContext context, Map<String,String> properties) {
-        say(context.getLogger(), "Hello before test [" + context.getTestRunId() + "]");
-        say(context.getLogger(), "Perfana event properties: " + properties);
+    public void beforeTest(TestContext context, EventProperties properties) {
+        say("Hello before test [" + context.getTestRunId() + "]");
+        say("Perfana event properties: " + properties);
 
         try {
-            say(context.getLogger(), "Sleep for 2 seconds");
+            say("Sleep for 2 seconds");
             Thread.sleep(2000);
         } catch (InterruptedException e) {
-            say(context.getLogger(), "Thread sleep interrupted");
+            say("Thread sleep interrupted");
             Thread.currentThread().interrupt();
         }
-        say(context.getLogger(), "Wakeup after 2 seconds");
+        say("Wakeup after 2 seconds");
     }
 
     @Override
-    public void afterTest(PerfanaTestContext context, Map<String,String> properties) {
-        say(context.getLogger(), "Hello after test [" + context.getTestRunId() + "]");
+    public void afterTest(TestContext context, EventProperties properties) {
+        say("Hello after test [" + context.getTestRunId() + "]");
     }
     
     @Override
-    public void keepAlive(PerfanaTestContext context, Map<String, String> eventProperties) {
-        say(context.getLogger(), "Hello keep alive for test [" + context.getTestRunId() + "]");
+    public void keepAlive(TestContext context, EventProperties properties) {
+        say("Hello keep alive for test [" + context.getTestRunId() + "]");
     }
 
     @Override
-    public void customEvent(PerfanaTestContext context, Map<String, String> eventProperties, ScheduleEvent scheduleEvent) {
+    public void customEvent(TestContext context, EventProperties properties, ScheduleEvent scheduleEvent) {
 
         String eventName = scheduleEvent.getName();
         
         if ("fail-over".equalsIgnoreCase(eventName)) {
-            failOverEvent(context, eventProperties, scheduleEvent);
+            failOverEvent(context, properties, scheduleEvent);
         }
         else if ("scale-down".equalsIgnoreCase(eventName)) {
-            scaleDownEvent(context, eventProperties, scheduleEvent);
+            scaleDownEvent(context, properties, scheduleEvent);
         }
         else if ("heapdump".equalsIgnoreCase(eventName)) {
-            heapdumpEvent(context, eventProperties, scheduleEvent);
+            heapdumpEvent(context, properties, scheduleEvent);
         }
         else if ("restart".equalsIgnoreCase(eventName)) {
-            restart(context, eventProperties, scheduleEvent);
+            restart(context, properties, scheduleEvent);
         }
         else {
-            say(context.getLogger(), "WARNING: ignoring unknown event [" + eventName + "]");
+            say("WARNING: ignoring unknown event [" + eventName + "]");
         }
     }
 
-    private void restart(PerfanaTestContext context, Map<String, String> eventProperties, ScheduleEvent scheduleEvent) {
+    private void restart(TestContext context, EventProperties properties, ScheduleEvent scheduleEvent) {
         Map<String, String> settings = parseSettings(scheduleEvent.getSettings());
         int durationInMillis = Integer.valueOf(settings.getOrDefault("durationInMillis", "10000"));
-        say(context.getLogger(), "Start " + scheduleEvent);
+        say("Start " + scheduleEvent);
         {
             try {
                 Thread.sleep(durationInMillis);
             } catch (InterruptedException e) {
-                say(context.getLogger(), "WARNING: Restart thread was interrupted!");
+                say("WARNING: Restart thread was interrupted!");
                 Thread.currentThread().interrupt();
             }
         }
-        say(context.getLogger(), "Finish " + scheduleEvent);
+        say("Finish " + scheduleEvent);
 
     }
 
-    private void heapdumpEvent(PerfanaTestContext context, Map<String, String> eventProperties, ScheduleEvent scheduleEvent) {
+    private void heapdumpEvent(TestContext context, EventProperties properties, ScheduleEvent scheduleEvent) {
         Map<String, String> settings = parseSettings(scheduleEvent.getSettings());
         int durationInMillis = Integer.valueOf(settings.getOrDefault("durationInMillis", "4000"));
-        say(context.getLogger(), "Start " + scheduleEvent);
+        say("Start " + scheduleEvent);
         {
             try {
                 Thread.sleep(durationInMillis);
             } catch (InterruptedException e) {
-                say(context.getLogger(), "WARNING: Heap dump thread was interrupted!");
+                say("WARNING: Heap dump thread was interrupted!");
                 Thread.currentThread().interrupt();
             }
         }
-        say(context.getLogger(), "Finish " + scheduleEvent);
+        say("Finish " + scheduleEvent);
     }
 
-    private void scaleDownEvent(PerfanaTestContext context, Map<String, String> eventProperties, ScheduleEvent scheduleEvent) {
-        say(context.getLogger(), "dispatched scale-down event for test [" + context.getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
+    private void scaleDownEvent(TestContext context, EventProperties properties, ScheduleEvent scheduleEvent) {
+        say("dispatched scale-down event for test [" + context.getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
     }
 
-    private void failOverEvent(PerfanaTestContext context, Map<String, String> eventProperties, ScheduleEvent scheduleEvent) {
+    private void failOverEvent(TestContext context, EventProperties properties, ScheduleEvent scheduleEvent) {
         Map<String, String> parsedSettings = parseSettings(scheduleEvent.getSettings());
-        say(context.getLogger(), "dispatched fail-over event for test [" + context.getTestRunId() + "] with parsed settings: " + parsedSettings);
+        say("dispatched fail-over event for test [" + context.getTestRunId() + "] with parsed settings: " + parsedSettings);
     }
 
     static Map<String, String> parseSettings(String eventSettings) {
@@ -123,8 +123,8 @@ public class StokpopHelloPerfanaEvent extends PerfanaEventAdapter {
                 .collect(Collectors.toMap(k -> k[0], v -> v.length == 2 ? v[1] : ""));
     }
 
-    private void say(PerfanaClientLogger logger, String something) {
-        logger.info(String.format("[%s] %s", getName(), something));
+    private void say(String something) {
+        System.out.println(String.format("[%s] %s", getName(), something));
     }
 
     private static void sayStatic(String something) {
