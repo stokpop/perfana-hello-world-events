@@ -1,7 +1,7 @@
 # test-events-hello-world
 
 This project shows an example implementation of the `Event` interface
-and the `EventScheduleGenerator` interface.
+and the `EventGenerator` interface.
 
 The `StokpopHelloEvent` shows when events are called in `System.out`.
 Also prints out the env variables and the `EventProperties` in 
