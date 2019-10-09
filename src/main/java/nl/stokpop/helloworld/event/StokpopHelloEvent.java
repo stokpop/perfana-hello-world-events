@@ -1,16 +1,16 @@
-package nl.stokpop.perfana.event;
+package nl.stokpop.helloworld.event;
 
-import io.perfana.client.api.TestContext;
-import io.perfana.event.EventProperties;
-import io.perfana.event.PerfanaEventAdapter;
-import io.perfana.event.ScheduleEvent;
+import nl.stokpop.eventscheduler.api.TestContext;
+import nl.stokpop.eventscheduler.event.EventAdapter;
+import nl.stokpop.eventscheduler.event.EventProperties;
+import nl.stokpop.eventscheduler.event.ScheduleEvent;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class StokpopHelloPerfanaEvent extends PerfanaEventAdapter {
+public class StokpopHelloEvent extends EventAdapter {
 
     static {
         sayStatic("Class loaded");
@@ -18,19 +18,19 @@ public class StokpopHelloPerfanaEvent extends PerfanaEventAdapter {
         System.getenv().forEach((key, value) -> sayStatic(String.format("env: %s=%s", key, value)));
     }
 
-    public StokpopHelloPerfanaEvent() {
+    public StokpopHelloEvent() {
         sayStatic("Default constructor called.");
     }
 
     @Override
     public String getName() {
-        return "StokpopHelloPerfanaEvent";
+        return "StokpopHelloEvent";
     }
 
     @Override
     public void beforeTest(TestContext context, EventProperties properties) {
         say("Hello before test [" + context.getTestRunId() + "]");
-        say("Perfana event properties: " + properties);
+        say("Event properties: " + properties);
 
         try {
             say("Sleep for 2 seconds");
@@ -128,6 +128,6 @@ public class StokpopHelloPerfanaEvent extends PerfanaEventAdapter {
     }
 
     private static void sayStatic(String something) {
-        System.out.println(String.format("[%s] %s%n", StokpopHelloPerfanaEvent.class.getSimpleName(), something));
+        System.out.println(String.format("[%s] %s%n", StokpopHelloEvent.class.getSimpleName(), something));
     }
 }

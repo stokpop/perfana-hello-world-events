@@ -1,9 +1,9 @@
-package nl.stokpop.perfana.event;
+package nl.stokpop.helloworld.event;
 
-import io.perfana.client.api.TestContext;
-import io.perfana.client.api.TestContextBuilder;
-import io.perfana.event.EventProperties;
-import io.perfana.event.ScheduleEvent;
+import nl.stokpop.eventscheduler.api.TestContext;
+import nl.stokpop.eventscheduler.api.TestContextBuilder;
+import nl.stokpop.eventscheduler.event.EventProperties;
+import nl.stokpop.eventscheduler.event.ScheduleEvent;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class StokpopHelloPerfanaEventTest {
+public class StokpopHelloEventTest {
 
     @Test
     public void beforeTest() {
@@ -25,7 +25,7 @@ public class StokpopHelloPerfanaEventTest {
                 .setTestRunId("my-test-run-id")
                 .build();
         
-        StokpopHelloPerfanaEvent event = new StokpopHelloPerfanaEvent();
+        StokpopHelloEvent event = new StokpopHelloEvent();
         event.beforeTest(context, properties);
         event.keepAlive(context, properties);
         event.customEvent(context, properties, ScheduleEvent.createFromLine("PT3S|fail-over|debug=true;server=test"));
@@ -40,20 +40,20 @@ public class StokpopHelloPerfanaEventTest {
 
     @Test
     public void parseSettingsZero() {
-        Map<String, String> emptyMap = StokpopHelloPerfanaEvent.parseSettings("");
+        Map<String, String> emptyMap = StokpopHelloEvent.parseSettings("");
         assertEquals(0, emptyMap.size());
     }
 
     @Test
     public void parseSettingsOne() {
-        Map<String, String> emptyMap = StokpopHelloPerfanaEvent.parseSettings("foo=bar");
+        Map<String, String> emptyMap = StokpopHelloEvent.parseSettings("foo=bar");
         assertEquals(1, emptyMap.size());
         assertEquals("bar", emptyMap.get("foo"));
     }
 
     @Test
     public void parseSettingsTwo() {
-        Map<String, String> emptyMap = StokpopHelloPerfanaEvent.parseSettings("foo=bar;name=stokpop");
+        Map<String, String> emptyMap = StokpopHelloEvent.parseSettings("foo=bar;name=stokpop");
         assertEquals(2, emptyMap.size());
         assertEquals("bar", emptyMap.get("foo"));
         assertEquals("stokpop", emptyMap.get("name"));
@@ -61,7 +61,7 @@ public class StokpopHelloPerfanaEventTest {
 
     @Test
     public void parseSettingsNoValue() {
-        Map<String, String> emptyMap = StokpopHelloPerfanaEvent.parseSettings("foo=bar;name");
+        Map<String, String> emptyMap = StokpopHelloEvent.parseSettings("foo=bar;name");
         assertEquals(2,emptyMap.size());
         assertEquals("bar", emptyMap.get("foo"));
         assertEquals("", emptyMap.get("name"));
@@ -69,7 +69,7 @@ public class StokpopHelloPerfanaEventTest {
 
     @Test
     public void parseSettingsNoEntry() {
-        Map<String, String> emptyMap = StokpopHelloPerfanaEvent.parseSettings("foo=bar;");
+        Map<String, String> emptyMap = StokpopHelloEvent.parseSettings("foo=bar;");
         assertEquals(1,emptyMap.size());
         assertEquals("bar", emptyMap.get("foo"));
     }
