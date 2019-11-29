@@ -10,7 +10,7 @@
 
     <groupId>nl.stokpop</groupId>
     <artifactId>test-events-hello-world</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
 
     <inceptionYear>2019</inceptionYear>
     <name>test-events-hello-world</name>
