@@ -27,14 +27,78 @@ import nl.stokpop.eventscheduler.api.EventProperties;
 import nl.stokpop.eventscheduler.api.TestContext;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.failOver;
+import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.heapdump;
+import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.restart;
+import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.scaleDown;
 
 public class StokpopHelloEvent extends EventAdapter {
 
     private static final int TO_MB = 1024 * 1024;
-    
+
+    enum AllowedProperties {
+
+        initialSleepSeconds("helloInitialSleepSeconds"),
+        helloMessage("helloMessage"),
+        myRestServer("myRestServer");
+
+        private String propertyName;
+
+        AllowedProperties(String propertyName) {
+            this.propertyName = propertyName;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
+
+        public static Stream<AllowedProperties> stream() {
+            return Stream.of(AllowedProperties.values());
+        }
+    }
+
+
+    enum AllowedCustomEvents {
+
+        failOver("fail-over"),
+        scaleDown("scale-down"),
+        heapdump("heapdump"),
+        restart("restart");
+
+        private String eventName;
+
+        AllowedCustomEvents(String eventName) {
+            this.eventName = eventName;
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
+
+        public static Stream<AllowedCustomEvents> stream() {
+            return Stream.of(values());
+        }
+        
+        public boolean hasEventName(String name) {
+            return this.eventName.equals(name);
+        }
+    }
+
+    private Set<String> allowedProperties = setOf(AllowedProperties.stream()
+            .map(AllowedProperties::getPropertyName)
+            .toArray(String[]::new));
+
+    private Set<String> allowedCustomEvents = setOf(AllowedCustomEvents.stream()
+            .map(AllowedCustomEvents::getEventName)
+            .toArray(String[]::new));
+
     static {
         sayStatic("Class loaded");
 
@@ -45,6 +109,23 @@ public class StokpopHelloEvent extends EventAdapter {
         super(eventName, testContext, eventProperties, logger);
         logger.info("Default constructor called.");
         printSystemInfo();
+
+        String helloMessage =
+                eventProperties.getPropertyOrDefault(
+                        AllowedProperties.helloMessage.getPropertyName(),
+                        "Default Hello Message");
+
+        logger.info("Message: " + helloMessage);
+    }
+
+    @Override
+    public Collection<String> allowedProperties() {
+        return allowedProperties;
+    }
+
+    @Override
+    public Collection<String> allowedCustomEvents() {
+        return allowedCustomEvents;
     }
 
     private void printSystemInfo() {
@@ -64,14 +145,21 @@ public class StokpopHelloEvent extends EventAdapter {
         logger.info("Hello before test [" + testContext.getTestRunId() + "]");
         logger.info("Event properties: " + eventProperties);
 
+        String helloInitialSleepSeconds =
+                eventProperties.getPropertyOrDefault(
+                        AllowedProperties.initialSleepSeconds.getPropertyName(),
+                        "2");
+
+        int sleepSeconds = Integer.parseInt(helloInitialSleepSeconds);
+
         try {
-            logger.info("Sleep for 2 seconds");
-            Thread.sleep(2000);
+            logger.info("Sleep for " + sleepSeconds + " seconds");
+            Thread.sleep(sleepSeconds * 1000);
         } catch (InterruptedException e) {
             logger.info("Thread sleep interrupted");
             Thread.currentThread().interrupt();
         }
-        logger.info("Wakeup after 2 seconds");
+        logger.info("Wakeup after " + sleepSeconds + " seconds");
     }
 
     @Override
@@ -89,16 +177,16 @@ public class StokpopHelloEvent extends EventAdapter {
 
         String eventName = scheduleEvent.getName();
         
-        if ("fail-over".equalsIgnoreCase(eventName)) {
+        if (failOver.hasEventName(eventName)) {
             failOverEvent(scheduleEvent);
         }
-        else if ("scale-down".equalsIgnoreCase(eventName)) {
+        else if (scaleDown.hasEventName(eventName)) {
             scaleDownEvent(scheduleEvent);
         }
-        else if ("heapdump".equalsIgnoreCase(eventName)) {
+        else if (heapdump.hasEventName(eventName)) {
             heapdumpEvent(scheduleEvent);
         }
-        else if ("restart".equalsIgnoreCase(eventName)) {
+        else if (restart.hasEventName(eventName)) {
             restart(scheduleEvent);
         }
         else {
@@ -110,31 +198,25 @@ public class StokpopHelloEvent extends EventAdapter {
         Map<String, String> settings = parseSettings(scheduleEvent.getSettings());
         int durationInMillis = Integer.parseInt(settings.getOrDefault("durationInMillis", "10000"));
         logger.info("Start " + scheduleEvent);
-        {
-            try {
-                Thread.sleep(durationInMillis);
-            } catch (InterruptedException e) {
-                logger.info("WARNING: Restart thread was interrupted!");
-                Thread.currentThread().interrupt();
-            }
-        }
+        sleep(durationInMillis);
         logger.info("Finish " + scheduleEvent);
-
     }
 
     private void heapdumpEvent(CustomEvent scheduleEvent) {
         Map<String, String> settings = parseSettings(scheduleEvent.getSettings());
         int durationInMillis = Integer.parseInt(settings.getOrDefault("durationInMillis", "4000"));
         logger.info("Start " + scheduleEvent);
-        {
-            try {
-                Thread.sleep(durationInMillis);
-            } catch (InterruptedException e) {
-                logger.info("WARNING: Heap dump thread was interrupted!");
-                Thread.currentThread().interrupt();
-            }
-        }
+        sleep(durationInMillis);
         logger.info("Finish " + scheduleEvent);
+    }
+
+    private void sleep(int durationInMillis) {
+        try {
+            Thread.sleep(durationInMillis);
+        } catch (InterruptedException e) {
+            logger.info("WARNING: Heap dump thread was interrupted!");
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void scaleDownEvent(CustomEvent scheduleEvent) {

@@ -4,13 +4,53 @@ This project shows an example implementation of the `Event` interface
 and the `EventGenerator` interface.
 
 The `StokpopHelloEvent` shows when events are called in `System.out`.
-Also prints out the env variables and the `EventProperties` in 
-the start test event call.
+It also prints out some system information at the start.
 
 The `StokpopEventGenerator` shows how to create a custom list of events from
-a generator class with properties. 
+a generator class with properties.
 
-## event-scheduler
+## to try it out
+
+If you just want to experiment with the events-gatling-maven-plugin and test-events-hello-world,
+just add the test-events-hello-world to plugin to the dependencies of the events-gatling-maven-plugin.
+For instance add the following to the Afterburner Gatling script:
+
+```xml 
+<plugin>
+    <groupId>nl.stokpop</groupId>
+    <artifactId>events-gatling-maven-plugin</artifactId>
+    <configuration>
+        <simulationClass>afterburner.AfterburnerBasicSimulation</simulationClass>
+        <eventScheduleScript>
+            PT5S|restart|{ server:'myserver' replicas:2 tags: [ 'first', 'second' ] }
+            PT10S|scale-down
+            PT30S|heapdump|server=myserver.example.com;port=1567
+            PT1M|scale-up|{ replicas:2 }
+        </eventScheduleScript>
+        <events>
+            <StokpopHelloEvent1>
+                <eventFactory>nl.stokpop.helloworld.event.StokpopHelloEventFactory</eventFactory>
+                <myRestServer>https://my-rest-api</myName>
+                <myCredentials>${ENV.SECRET}</myCredentials>
+            </StokpopHelloEvent1>
+        </events>
+    </configuration>
+    <dependencies>
+        <dependency>
+            <groupId>nl.stokpop</groupId>
+            <artifactId>test-events-hello-world</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+    </dependencies>
+</plugin>
+```
+
+See also: 
+* https://github.com/stokpop/events-gatling-maven-plugin
+* https://github.com/stokpop/event-scheduler
+*  
+
+## for event builders
 
 Add a dependency to the event-scheduler jar, just for compile.
 
@@ -21,7 +61,7 @@ Example:
    <dependency>
        <groupId>nl.stokpop</groupId>
        <artifactId>event-scheduler</artifactId>
-       <version>2.0.0</version>
+       <version>2.1.0</version>
        <scope>compile</scope>
    </dependency>
 </dependencies>
