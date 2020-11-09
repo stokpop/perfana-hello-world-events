@@ -31,7 +31,7 @@ For instance add the following to the Afterburner Gatling script:
             <StokpopHelloEvent1>
                 <eventFactory>nl.stokpop.helloworld.event.StokpopHelloEventFactory</eventFactory>
                 <myRestServer>https://my-rest-api</myName>
-                <myCredentials>${ENV.SECRET}</myCredentials>
+                <myCredentials>${env.SECRET}</myCredentials>
             </StokpopHelloEvent1>
         </events>
     </configuration>
