@@ -24,12 +24,11 @@ import nl.stokpop.eventscheduler.api.EventGenerator;
 import nl.stokpop.eventscheduler.api.EventGeneratorFactory;
 import nl.stokpop.eventscheduler.api.EventGeneratorProperties;
 import nl.stokpop.eventscheduler.api.EventLogger;
-import nl.stokpop.eventscheduler.api.TestContext;
 
 public class StokpopEventGeneratorFactory implements EventGeneratorFactory {
 
     @Override
-    public EventGenerator create(TestContext testContext, EventGeneratorProperties eventGeneratorProperties, EventLogger eventLogger) {
-        return new StokpopEventGenerator(testContext, eventGeneratorProperties, eventLogger);
+    public EventGenerator create(EventGeneratorProperties eventGeneratorProperties, EventLogger eventLogger) {
+        return new StokpopEventGenerator(eventGeneratorProperties, eventLogger);
     }
 }

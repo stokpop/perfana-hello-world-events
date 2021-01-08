@@ -23,13 +23,11 @@ package nl.stokpop.helloworld.event;
 import nl.stokpop.eventscheduler.api.Event;
 import nl.stokpop.eventscheduler.api.EventFactory;
 import nl.stokpop.eventscheduler.api.EventLogger;
-import nl.stokpop.eventscheduler.api.EventProperties;
-import nl.stokpop.eventscheduler.api.TestContext;
 
-public class StokpopHelloEventFactory implements EventFactory {
+public class StokpopHelloEventFactory implements EventFactory<StokpopHelloEventConfig> {
 
     @Override
-    public Event create(String eventName, TestContext testContext, EventProperties eventProperties, EventLogger eventLogger) {
-        return new StokpopHelloEvent(eventName, testContext, eventProperties, eventLogger);
+    public Event create(StokpopHelloEventConfig eventConfig, EventLogger eventLogger) {
+        return new StokpopHelloEvent(eventConfig, eventLogger);
     }
 }

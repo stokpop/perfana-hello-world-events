@@ -39,7 +39,7 @@ For instance add the following to the Afterburner Gatling script:
         <dependency>
             <groupId>nl.stokpop</groupId>
             <artifactId>test-events-hello-world</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.0</version>
         </dependency>
     </dependencies>
 </plugin>
@@ -67,11 +67,11 @@ Example:
 </dependencies>
 ```
 
-Then you can your own implementations of the `Event` and the `EventFactory` interface.
-And of the `EventGenerator` and the `EventGeneratorFactory` interface.
+Then you can create your own implementations of the `Event` and the `EventFactory` interface.
+The same goes for the `EventGenerator` and the `EventGeneratorFactory` interface.
 
-For convenience you can use the `EventAdapter` abstract class 
-to implementing `Event` inteface. Only implement the method you want to override.
+For convenience, you can use the `EventAdapter` abstract class 
+to implementing `Event` interface. Only implement the method you want to override.
 
 ## add services files                               
 

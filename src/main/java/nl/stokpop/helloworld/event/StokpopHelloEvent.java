@@ -23,56 +23,27 @@ package nl.stokpop.helloworld.event;
 import nl.stokpop.eventscheduler.api.CustomEvent;
 import nl.stokpop.eventscheduler.api.EventAdapter;
 import nl.stokpop.eventscheduler.api.EventLogger;
-import nl.stokpop.eventscheduler.api.EventProperties;
-import nl.stokpop.eventscheduler.api.TestContext;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.time.Duration;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.failOver;
-import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.heapdump;
-import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.restart;
-import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.scaleDown;
+import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.*;
 
-public class StokpopHelloEvent extends EventAdapter {
+public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventConfig> {
 
     private static final int TO_MB = 1024 * 1024;
-
-    enum AllowedProperties {
-
-        initialSleepSeconds("helloInitialSleepSeconds"),
-        helloMessage("helloMessage"),
-        myRestServer("myRestServer");
-
-        private String propertyName;
-
-        AllowedProperties(String propertyName) {
-            this.propertyName = propertyName;
-        }
-
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        public static Stream<AllowedProperties> stream() {
-            return Stream.of(AllowedProperties.values());
-        }
-    }
-
 
     enum AllowedCustomEvents {
 
         failOver("fail-over"),
         scaleDown("scale-down"),
         heapdump("heapdump"),
-        restart("restart");
+        restart("restart"),
+        helloWorld("hello-world");
 
-        private String eventName;
+        private final String eventName;
 
         AllowedCustomEvents(String eventName) {
             this.eventName = eventName;
@@ -91,13 +62,9 @@ public class StokpopHelloEvent extends EventAdapter {
         }
     }
 
-    private Set<String> allowedProperties = setOf(AllowedProperties.stream()
-            .map(AllowedProperties::getPropertyName)
-            .toArray(String[]::new));
-
-    private Set<String> allowedCustomEvents = setOf(AllowedCustomEvents.stream()
-            .map(AllowedCustomEvents::getEventName)
-            .toArray(String[]::new));
+    private final Set<String> allowedCustomEvents = setOf(AllowedCustomEvents.stream()
+        .map(AllowedCustomEvents::getEventName)
+        .toArray(String[]::new));
 
     static {
         sayStatic("Class loaded");
@@ -105,27 +72,15 @@ public class StokpopHelloEvent extends EventAdapter {
         //System.getenv().forEach((key, value) -> sayStatic(String.format("env: %s=%s", key, value)));
     }
 
-    public StokpopHelloEvent(String eventName, TestContext testContext, EventProperties eventProperties, EventLogger logger) {
-        super(eventName, testContext, eventProperties, logger);
+    public StokpopHelloEvent(StokpopHelloEventConfig eventConfig, EventLogger logger) {
+        super(eventConfig, logger);
         logger.info("Default constructor called.");
         printSystemInfo();
 
-        String helloMessage =
-                eventProperties.getPropertyOrDefault(
-                        AllowedProperties.helloMessage.getPropertyName(),
-                        "Default Hello Message");
-
+        String helloMessage = eventConfig.getHelloMessage();
         logger.info("Message: " + helloMessage);
-    }
 
-    @Override
-    public Collection<String> allowedProperties() {
-        return allowedProperties;
-    }
-
-    @Override
-    public Collection<String> allowedCustomEvents() {
-        return allowedCustomEvents;
+        logger.info("Got StokpopHelloEventConfig: " + eventConfig);
     }
 
     private void printSystemInfo() {
@@ -139,22 +94,23 @@ public class StokpopHelloEvent extends EventAdapter {
         logger.info(String.format("Total memory:         %-6d MB", totalMemoryBytes/ TO_MB));
         logger.info(String.format("Free memory:          %-6d MB", freeMemoryBytes/ TO_MB));
     }
-    
+
+    @Override
+    public Collection<String> allowedCustomEvents() {
+        return allowedCustomEvents;
+    }
+
     @Override
     public void beforeTest() {
-        logger.info("Hello before test [" + testContext.getTestRunId() + "]");
-        logger.info("Event properties: " + eventProperties);
+        logger.info("Hello before test [" + eventConfig.getTestConfig().getTestRunId() + "]");
 
-        String helloInitialSleepSeconds =
-                eventProperties.getPropertyOrDefault(
-                        AllowedProperties.initialSleepSeconds.getPropertyName(),
-                        "2");
+        Long helloInitialSleepSeconds = eventConfig.getHelloInitialSleepSeconds();
 
-        int sleepSeconds = Integer.parseInt(helloInitialSleepSeconds);
+        long sleepSeconds = helloInitialSleepSeconds == null ? 2 : helloInitialSleepSeconds;
 
         try {
             logger.info("Sleep for " + sleepSeconds + " seconds");
-            Thread.sleep(sleepSeconds * 1000);
+            Thread.sleep(Duration.ofSeconds(sleepSeconds).toMillis());
         } catch (InterruptedException e) {
             logger.info("Thread sleep interrupted");
             Thread.currentThread().interrupt();
@@ -164,12 +120,12 @@ public class StokpopHelloEvent extends EventAdapter {
 
     @Override
     public void afterTest() {
-        logger.info("Hello after test [" + testContext.getTestRunId() + "]");
+        logger.info("Hello after test [" + eventConfig.getTestConfig().getTestRunId() + "]");
     }
     
     @Override
     public void keepAlive() {
-        logger.info("Hello keep alive for test [" + testContext.getTestRunId() + "]");
+        logger.info("Hello keep alive for test [" + eventConfig.getTestConfig().getTestRunId() + "]");
     }
 
     @Override
@@ -188,6 +144,9 @@ public class StokpopHelloEvent extends EventAdapter {
         }
         else if (restart.hasEventName(eventName)) {
             restart(scheduleEvent);
+        }
+        else if (helloWorld.hasEventName(eventName)) {
+            logger.info("Custom hello world called:" + scheduleEvent.getSettings());
         }
         else {
             logger.info("WARNING: ignoring unknown event [" + eventName + "]");
@@ -220,12 +179,12 @@ public class StokpopHelloEvent extends EventAdapter {
     }
 
     private void scaleDownEvent(CustomEvent scheduleEvent) {
-        logger.info("dispatched scale-down event for test [" + testContext.getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
+        logger.info("dispatched scale-down event for test [" + eventConfig.getTestConfig().getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
     }
 
     private void failOverEvent(CustomEvent scheduleEvent) {
         Map<String, String> parsedSettings = parseSettings(scheduleEvent.getSettings());
-        logger.info("dispatched fail-over event for test [" + testContext.getTestRunId() + "] with parsed settings: " + parsedSettings);
+        logger.info("dispatched fail-over event for test [" + eventConfig.getTestConfig().getTestRunId() + "] with parsed settings: " + parsedSettings);
     }
 
     static Map<String, String> parseSettings(String eventSettings) {

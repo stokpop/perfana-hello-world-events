@@ -23,7 +23,6 @@ import nl.stokpop.eventscheduler.api.CustomEvent;
 import nl.stokpop.eventscheduler.api.EventGenerator;
 import nl.stokpop.eventscheduler.api.EventGeneratorProperties;
 import nl.stokpop.eventscheduler.api.EventLogger;
-import nl.stokpop.eventscheduler.api.TestContext;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -36,10 +35,8 @@ public class StokpopEventGenerator implements EventGenerator {
     private static final String INPUT_FILE_TAG = "input-file";
     private final EventLogger logger;
     private final EventGeneratorProperties properties;
-    private final TestContext testContext;
 
-    StokpopEventGenerator(TestContext testContext, EventGeneratorProperties properties, EventLogger logger) {
-        this.testContext = testContext;
+    StokpopEventGenerator(EventGeneratorProperties properties, EventLogger logger) {
         this.properties = properties;
         this.logger = logger;
     }
