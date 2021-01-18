@@ -20,8 +20,10 @@ package nl.stokpop.helloworld.event;
  * #L%
  */
 
+import nl.stokpop.eventscheduler.EventMessageBusSimple;
 import nl.stokpop.eventscheduler.api.CustomEvent;
 import nl.stokpop.eventscheduler.api.config.TestConfig;
+import nl.stokpop.eventscheduler.api.message.EventMessageBus;
 import nl.stokpop.eventscheduler.log.EventLoggerStdOut;
 import org.junit.Test;
 
@@ -40,7 +42,9 @@ public class StokpopHelloEventTest {
         stokpopHelloEventConfig.setEnabled(true);
         stokpopHelloEventConfig.setTestConfig(TestConfig.builder().build());
 
-        StokpopHelloEvent event = new StokpopHelloEvent(stokpopHelloEventConfig, EventLoggerStdOut.INSTANCE);
+        EventMessageBus messageBus = new EventMessageBusSimple();
+
+        StokpopHelloEvent event = new StokpopHelloEvent(stokpopHelloEventConfig.toContext(), messageBus, EventLoggerStdOut.INSTANCE);
         event.beforeTest();
         event.keepAlive();
         event.customEvent(CustomEvent.createFromLine("PT3S|fail-over|debug=true;server=test"));

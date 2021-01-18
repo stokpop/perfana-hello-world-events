@@ -23,6 +23,8 @@ package nl.stokpop.helloworld.event;
 import nl.stokpop.eventscheduler.api.CustomEvent;
 import nl.stokpop.eventscheduler.api.EventAdapter;
 import nl.stokpop.eventscheduler.api.EventLogger;
+import nl.stokpop.eventscheduler.api.message.EventMessage;
+import nl.stokpop.eventscheduler.api.message.EventMessageBus;
 
 import java.time.Duration;
 import java.util.*;
@@ -31,7 +33,7 @@ import java.util.stream.Stream;
 
 import static nl.stokpop.helloworld.event.StokpopHelloEvent.AllowedCustomEvents.*;
 
-public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventConfig> {
+public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventContext> {
 
     private static final int TO_MB = 1024 * 1024;
 
@@ -72,15 +74,17 @@ public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventConfig> {
         //System.getenv().forEach((key, value) -> sayStatic(String.format("env: %s=%s", key, value)));
     }
 
-    public StokpopHelloEvent(StokpopHelloEventConfig eventConfig, EventLogger logger) {
-        super(eventConfig, logger);
+    public StokpopHelloEvent(StokpopHelloEventContext eventContext, EventMessageBus messageBus, EventLogger logger) {
+        super(eventContext, messageBus, logger);
         logger.info("Default constructor called.");
         printSystemInfo();
 
-        String helloMessage = eventConfig.getHelloMessage();
+        String helloMessage = eventContext.getHelloMessage();
         logger.info("Message: " + helloMessage);
 
-        logger.info("Got StokpopHelloEventConfig: " + eventConfig);
+        logger.info("Got StokpopHelloEventConfig: " + eventContext);
+
+        this.eventMessageBus.addReceiver(m -> logger.info("Received message: " + m));
     }
 
     private void printSystemInfo() {
@@ -102,30 +106,43 @@ public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventConfig> {
 
     @Override
     public void beforeTest() {
-        logger.info("Hello before test [" + eventConfig.getTestConfig().getTestRunId() + "]");
+        logger.info("Hello before test [" + eventContext.getTestContext().getTestRunId() + "]");
 
-        Long helloInitialSleepSeconds = eventConfig.getHelloInitialSleepSeconds();
+        String pluginName = StokpopHelloEvent.class.getSimpleName() + "-" + eventContext.getName();
 
-        long sleepSeconds = helloInitialSleepSeconds == null ? 2 : helloInitialSleepSeconds;
+        EventMessage message = EventMessage.builder()
+            .pluginName(pluginName)
+            .message("Hello there!")
+            .variable("perfana-hello-world-message", "Hello World!")
+            .variable("perfana-hello-world-magic-number", "42")
+            .build();
+
+        eventMessageBus.send(message);
+
+        Duration helloInitialSleep = eventContext.getHelloInitialSleep();
+
+        Duration sleep = helloInitialSleep == null ? Duration.ofSeconds(2) : helloInitialSleep;
 
         try {
-            logger.info("Sleep for " + sleepSeconds + " seconds");
-            Thread.sleep(Duration.ofSeconds(sleepSeconds).toMillis());
+            logger.info("Sleep for " + sleep);
+            Thread.sleep(sleep.toMillis());
         } catch (InterruptedException e) {
             logger.info("Thread sleep interrupted");
             Thread.currentThread().interrupt();
         }
-        logger.info("Wakeup after " + sleepSeconds + " seconds");
+        logger.info("Wakeup after " + sleep + " now send Go! message!");
+
+        this.eventMessageBus.send(EventMessage.builder().pluginName(pluginName).message("Go!").build());
     }
 
     @Override
     public void afterTest() {
-        logger.info("Hello after test [" + eventConfig.getTestConfig().getTestRunId() + "]");
+        logger.info("Hello after test [" + eventContext.getTestContext().getTestRunId() + "]");
     }
     
     @Override
     public void keepAlive() {
-        logger.info("Hello keep alive for test [" + eventConfig.getTestConfig().getTestRunId() + "]");
+        logger.info("Hello keep alive for test [" + eventContext.getTestContext().getTestRunId() + "]");
     }
 
     @Override
@@ -179,12 +196,12 @@ public class StokpopHelloEvent extends EventAdapter<StokpopHelloEventConfig> {
     }
 
     private void scaleDownEvent(CustomEvent scheduleEvent) {
-        logger.info("dispatched scale-down event for test [" + eventConfig.getTestConfig().getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
+        logger.info("dispatched scale-down event for test [" + eventContext.getTestContext().getTestRunId() + "] with settings [" + scheduleEvent.getSettings() + "]");
     }
 
     private void failOverEvent(CustomEvent scheduleEvent) {
         Map<String, String> parsedSettings = parseSettings(scheduleEvent.getSettings());
-        logger.info("dispatched fail-over event for test [" + eventConfig.getTestConfig().getTestRunId() + "] with parsed settings: " + parsedSettings);
+        logger.info("dispatched fail-over event for test [" + eventContext.getTestContext().getTestRunId() + "] with parsed settings: " + parsedSettings);
     }
 
     static Map<String, String> parseSettings(String eventSettings) {
