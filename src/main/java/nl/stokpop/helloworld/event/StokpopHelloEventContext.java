@@ -1,9 +1,11 @@
 package nl.stokpop.helloworld.event;
 
+import net.jcip.annotations.Immutable;
 import nl.stokpop.eventscheduler.api.config.EventContext;
 
 import java.time.Duration;
 
+@Immutable
 public class StokpopHelloEventContext extends EventContext {
 
     private final String myRestService;

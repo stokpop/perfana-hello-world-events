@@ -1,10 +1,12 @@
 package nl.stokpop.helloworld.event;
 
+import net.jcip.annotations.NotThreadSafe;
 import nl.stokpop.eventscheduler.api.config.EventConfig;
 import nl.stokpop.eventscheduler.api.config.TestContext;
 
 import java.time.Duration;
 
+@NotThreadSafe
 public class StokpopHelloEventConfig extends EventConfig {
 
     private String myRestService;
